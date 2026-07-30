@@ -23,6 +23,16 @@ dependencies {
     implementation "net.neoforged:neoforge:${neo_version}"
 }
 
+tasks.register('verifyClientState', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'cn.ussshenzhou.hotbaaaar.client.ClientStateTestSuite'
+}
+
+tasks.named('check').configure {
+    dependsOn verifyClientState
+}
+
 // NeoForge runs on official Mojang mappings, so mixins need no refmap remapping.
 tasks.named('processResources', ProcessResources).configure {
     var replaceProperties = [
