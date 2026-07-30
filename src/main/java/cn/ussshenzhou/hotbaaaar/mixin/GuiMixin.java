@@ -39,7 +39,7 @@ public abstract class GuiMixin {
     @Shadow
     protected abstract void renderSlot(GuiGraphics guiGraphics, int x, int y, DeltaTracker deltaTracker, Player player, ItemStack stack, int seed);
 
-    @Inject(method = "renderHotbar", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "renderItemHotbar", at = @At("HEAD"), cancellable = true)
     private void hotbaaaar$renderHotbar(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
         Player player = this.getCameraPlayer();
         if (player == null) {
