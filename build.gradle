@@ -59,6 +59,16 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
 sourceSets.main.resources.srcDir generateModMetadata
 neoForge.ideSyncTask generateModMetadata
 
+tasks.register('verifyClientState', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'cn.ussshenzhou.hotbaaaar.client.ClientStateTestSuite'
+}
+
+tasks.named('check').configure {
+    dependsOn verifyClientState
+}
+
 idea {
     module {
         downloadSources = true
