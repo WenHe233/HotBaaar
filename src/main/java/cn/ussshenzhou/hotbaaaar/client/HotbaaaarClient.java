@@ -5,42 +5,35 @@ import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.Slot;
 
 /**
- * Client-only state and logic for the "super long hotbar" (26.1.x variant: the held slot is accessed
- * via {@code getSelectedSlot()/setSelectedSlot()} instead of the {@code selected} field).
- * <p>
- * See the standard variant for the full design notes (row-flip via container SWAP clicks; restore on
- * inventory open, re-apply on close).
+ * Client-only state and row-swap logic for the extended hotbar.
  *
- * @author USS_Shenzhou
+ * <p>Whenever any GUI is open, the physical inventory is restored to canonical order. This is
+ * driven by screen state rather than keys or screen classes. For foreign/modded menus, player
+ * inventory slots are resolved from the active menu by inventory identity and inventory index.
  */
-public class HotbaaaarClient {
+public final class HotbaaaarClient {
 
     private static final int ROW = 9;
-    private static final int MAX_ROWS = 4;
+    private static final RowMapping ROW_MAPPING = new RowMapping();
 
-    private static final int[] physicalOfLogical = {0, 1, 2, 3};
-    private static int activeLogicalRow = 0;
-
-    private static Player lastPlayer = null;
-
-    private static boolean restoredForInventory = false;
-    private static int savedActiveRow = 0;
+    private static Object lastConnection;
+    private static boolean canonicalForScreen;
+    private static int savedActiveRow;
 
     private HotbaaaarClient() {
     }
 
     public static int getActiveLogicalRow() {
-        return activeLogicalRow;
+        return ROW_MAPPING.activeLogicalRow();
     }
 
     public static int physicalRowOfLogical(int logicalRow) {
-        if (logicalRow < 0 || logicalRow >= MAX_ROWS) {
-            return logicalRow;
-        }
-        return physicalOfLogical[logicalRow];
+        return ROW_MAPPING.physicalOfLogical(logicalRow);
     }
 
     public static int getRows() {
@@ -48,100 +41,75 @@ public class HotbaaaarClient {
         if (mc.getWindow() == null) {
             return 1;
         }
-        return Mth.clamp(mc.getWindow().getGuiScaledWidth() / 182, 1, MAX_ROWS);
+        return Mth.clamp(mc.getWindow().getGuiScaledWidth() / 182, 1, RowMapping.MAX_ROWS);
     }
 
-    public static void resetMapping() {
-        for (int i = 0; i < MAX_ROWS; i++) {
-            physicalOfLogical[i] = i;
+    /**
+     * Reconcile the logical state with the current connection, GUI state and available row count.
+     * Called immediately after screen changes and once per client tick; failed safe restores are
+     * therefore retried after modded menus finish initializing their slots.
+     */
+    public static void reconcileScreenState(boolean screenOpen) {
+        Minecraft mc = Minecraft.getInstance();
+        Object connection = mc.getConnection();
+        if (connection != lastConnection) {
+            lastConnection = connection;
+            ROW_MAPPING.resetIdentity();
+            canonicalForScreen = false;
+            savedActiveRow = 0;
         }
-        activeLogicalRow = 0;
+
+        if (mc.player == null || mc.gameMode == null) {
+            return;
+        }
+
+        if (screenOpen) {
+            if (!canonicalForScreen) {
+                int rowToResume = ROW_MAPPING.activeLogicalRow();
+                if (restoreCanonical()) {
+                    savedActiveRow = rowToResume;
+                    canonicalForScreen = true;
+                }
+            }
+            return;
+        }
+
+        if (canonicalForScreen) {
+            if (savedActiveRow > 0 && savedActiveRow < getRows()) {
+                if (!activateLogicalRow(savedActiveRow)) {
+                    return;
+                }
+            }
+            canonicalForScreen = false;
+            savedActiveRow = 0;
+        }
+
+        if (ROW_MAPPING.activeLogicalRow() >= getRows()) {
+            restoreCanonical();
+        }
     }
 
     public static void tickSanity() {
-        Player p = Minecraft.getInstance().player;
-        if (p != lastPlayer) {
-            lastPlayer = p;
-            restoredForInventory = false;
-            resetMapping();
-        }
-        if (activeLogicalRow >= getRows()) {
-            resetMapping();
-        }
+        Minecraft mc = Minecraft.getInstance();
+        reconcileScreenState(mc.screen != null);
     }
 
-    // --- inventory-screen open/close: restore on open, re-apply on close -------------------------
-
-    public static void onInventoryOpen() {
-        if (restoredForInventory) {
-            return;
-        }
-        savedActiveRow = activeLogicalRow;
-        restoreCanonical();
-        restoredForInventory = true;
-    }
-
-    public static void onInventoryClose() {
-        if (!restoredForInventory) {
-            return;
-        }
-        restoredForInventory = false;
-        if (savedActiveRow > 0 && savedActiveRow < getRows()) {
-            activateLogicalRow(savedActiveRow);
-        }
-    }
-
-    public static void onForeignContainer() {
-        restoredForInventory = false;
-        resetMapping();
-    }
-
-    public static void restoreCanonical() {
-        for (int i = 1; i < MAX_ROWS; i++) {
-            if (logicalAtPhysical(i) == i) {
-                continue;
-            }
-            if (logicalAtPhysical(0) != i) {
-                if (!swapWithHotbarTracked(physicalOfLogical[i])) {
-                    break;
-                }
-            }
-            if (!swapWithHotbarTracked(i)) {
-                break;
-            }
-        }
-        activeLogicalRow = logicalAtPhysical(0);
-    }
-
-    private static int logicalAtPhysical(int physical) {
-        for (int l = 0; l < MAX_ROWS; l++) {
-            if (physicalOfLogical[l] == physical) {
-                return l;
-            }
-        }
-        return physical;
-    }
-
-    private static boolean swapWithHotbarTracked(int p) {
-        if (p == 0) {
+    public static boolean restoreCanonical() {
+        int[] plan = ROW_MAPPING.planRestore();
+        if (plan.length == 0) {
             return true;
         }
-        if (!swapPhysicalRowWithHotbar(p)) {
+        ResolvedSwapPlan resolved = resolveSwapPlan(plan);
+        if (resolved == null) {
             return false;
         }
-        int a = logicalAtPhysical(0);
-        int b = logicalAtPhysical(p);
-        physicalOfLogical[a] = p;
-        physicalOfLogical[b] = 0;
-        return true;
+        executeSwapPlan(resolved);
+        return ROW_MAPPING.isIdentity();
     }
-
-    // --- scrolling ------------------------------------------------------------------------------
 
     public static void onScroll(double direction) {
         Minecraft mc = Minecraft.getInstance();
-        Player player = mc.player;
-        if (player == null) {
+        if (mc.screen != null || canonicalForScreen || mc.player == null) {
             return;
         }
         int dir = (int) Math.signum(direction);
@@ -149,19 +117,23 @@ public class HotbaaaarClient {
             return;
         }
         tickSanity();
-        Inventory inv = player.getInventory();
-        int newSelected = inv.getSelectedSlot() - dir;
+        if (canonicalForScreen || mc.screen != null) {
+            return;
+        }
+
+        Inventory inventory = mc.player.getInventory();
+        int newSelected = inventory.getSelectedSlot() - dir;
         if (newSelected < 0) {
-            setSelected(inv, flipRow(-1) ? ROW - 1 : 0);
+            setSelected(inventory, flipRow(-1) ? ROW - 1 : 0);
         } else if (newSelected >= ROW) {
-            setSelected(inv, flipRow(1) ? 0 : ROW - 1);
+            setSelected(inventory, flipRow(1) ? 0 : ROW - 1);
         } else {
-            setSelected(inv, newSelected);
+            setSelected(inventory, newSelected);
         }
     }
 
-    private static void setSelected(Inventory inv, int slot) {
-        inv.setSelectedSlot(slot);
+    private static void setSelected(Inventory inventory, int slot) {
+        inventory.setSelectedSlot(slot);
         Minecraft mc = Minecraft.getInstance();
         if (mc.getConnection() != null) {
             mc.getConnection().send(new ServerboundSetCarriedItemPacket(slot));
@@ -169,44 +141,82 @@ public class HotbaaaarClient {
     }
 
     private static boolean flipRow(int delta) {
-        int target = activeLogicalRow + delta;
-        if (target < 0 || target >= getRows()) {
-            return false;
-        }
-        return activateLogicalRow(target);
+        int target = ROW_MAPPING.activeLogicalRow() + delta;
+        return target >= 0 && target < getRows() && activateLogicalRow(target);
     }
 
     private static boolean activateLogicalRow(int target) {
-        if (target == activeLogicalRow) {
+        if (target == ROW_MAPPING.activeLogicalRow()) {
             return true;
         }
-        int targetPhysical = physicalOfLogical[target];
-        if (!swapPhysicalRowWithHotbar(targetPhysical)) {
+        int physical = ROW_MAPPING.physicalOfLogical(target);
+        ResolvedSwapPlan resolved = resolveSwapPlan(new int[]{physical});
+        if (resolved == null) {
             return false;
         }
-        int old = activeLogicalRow;
-        physicalOfLogical[old] = targetPhysical;
-        physicalOfLogical[target] = 0;
-        activeLogicalRow = target;
-        return true;
+        executeSwapPlan(resolved);
+        return ROW_MAPPING.activeLogicalRow() == target;
     }
 
-    private static boolean swapPhysicalRowWithHotbar(int physical) {
-        if (physical == 0) {
-            return true;
-        }
+    private static ResolvedSwapPlan resolveSwapPlan(int[] physicalRows) {
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
         if (player == null || mc.gameMode == null) {
-            return false;
+            return null;
         }
-        if (player.containerMenu != player.inventoryMenu) {
-            return false;
+        AbstractContainerMenu menu = player.containerMenu;
+        Inventory inventory = player.getInventory();
+        boolean[] required = new boolean[RowMapping.MAX_ROWS];
+
+        for (int physical : physicalRows) {
+            if (physical <= 0 || physical >= RowMapping.MAX_ROWS) {
+                return null;
+            }
+            required[physical] = true;
         }
-        for (int col = 0; col < ROW; col++) {
-            int menuSlot = physical * ROW + col;
-            mc.gameMode.handleContainerInput(0, menuSlot, col, ContainerInput.SWAP, player);
+
+        MenuSlotLookup lookup = new MenuSlotLookup(required);
+        for (Slot slot : menu.slots) {
+            if (slot.container != inventory) {
+                continue;
+            }
+            lookup.record(slot.getContainerSlot(), slot.index);
         }
-        return true;
+
+        int[][] menuSlots = lookup.finish();
+        if (menuSlots == null) {
+            return null;
+        }
+        return new ResolvedSwapPlan(menu, player, physicalRows, menuSlots);
+    }
+
+    private static void executeSwapPlan(ResolvedSwapPlan plan) {
+        Minecraft mc = Minecraft.getInstance();
+        for (int physical : plan.physicalRows) {
+            for (int column = 0; column < ROW; column++) {
+                mc.gameMode.handleContainerInput(
+                        plan.menu.containerId,
+                        plan.menuSlots[physical][column],
+                        column,
+                        ContainerInput.SWAP,
+                        plan.player
+                );
+            }
+            ROW_MAPPING.applyHotbarSwap(physical);
+        }
+    }
+
+    private static final class ResolvedSwapPlan {
+        private final AbstractContainerMenu menu;
+        private final Player player;
+        private final int[] physicalRows;
+        private final int[][] menuSlots;
+
+        private ResolvedSwapPlan(AbstractContainerMenu menu, Player player, int[] physicalRows, int[][] menuSlots) {
+            this.menu = menu;
+            this.player = player;
+            this.physicalRows = physicalRows;
+            this.menuSlots = menuSlots;
+        }
     }
 }
