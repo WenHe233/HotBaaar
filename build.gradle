@@ -28,6 +28,10 @@ tasks.named('check').configure {
     dependsOn verifyClientState
 }
 
+tasks.named('test', Test).configure {
+    failOnNoDiscoveredTests = false
+}
+
 processResources {
     inputs.property 'version', project.version
     filesMatching('fabric.mod.json') {
