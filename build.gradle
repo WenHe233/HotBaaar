@@ -57,6 +57,16 @@ dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
+tasks.register('verifyClientState', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'cn.ussshenzhou.hotbaaaar.client.ClientStateTestSuite'
+}
+
+tasks.named('check').configure {
+    dependsOn verifyClientState
+}
+
 tasks.named('processResources', ProcessResources).configure {
     var replaceProperties = [
             minecraft_version      : minecraft_version,
