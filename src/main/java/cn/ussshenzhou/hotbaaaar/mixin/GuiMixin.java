@@ -5,8 +5,8 @@ import cn.ussshenzhou.hotbaaaar.util.Util;
 import net.minecraft.client.AttackIndicatorStatus;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.Hud;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.HumanoidArm;
@@ -21,13 +21,13 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Renders the extended hotbar on the 26.1.x extract/sprite API ({@code Gui.extractItemHotbar} +
+ * Renders the extended hotbar on the 26.2 extract/sprite API ({@code Hud.extractItemHotbar} +
  * {@code GuiGraphicsExtractor.blitSprite(RenderPipelines.GUI_TEXTURED, ...)}): up to four 9-slot rows
  * as one wide strip, items drawn at fixed logical positions (see {@link HotbaaaarClient}).
  *
  * @author USS_Shenzhou
  */
-@Mixin(Gui.class)
+@Mixin(Hud.class)
 public abstract class GuiMixin {
 
     @Shadow
