@@ -3,7 +3,6 @@
   "minVersion": "0.8",
   "package": "cn.ussshenzhou.hotbaaaar.mixin",
   "compatibilityLevel": "JAVA_21",
-  "refmap": "hotbaaaar.refmap.json",
   "client": [
     "GuiMixin",
     "MouseHandlerMixin",

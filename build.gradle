@@ -12,14 +12,6 @@ base {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
-loom {
-    // Generate the mixin refmap under the name our mixins.json references (keeps it identical to the
-    // Forge/NeoForge branches), instead of Loom's default "<archivesBaseName>-refmap.json".
-    mixin {
-        defaultRefmapName = "${mod_id}.refmap.json"
-    }
-}
-
 repositories {
     mavenCentral()
     maven { url = 'https://maven.fabricmc.net/' }
@@ -40,6 +32,10 @@ tasks.register('verifyClientState', JavaExec) {
 
 tasks.named('check').configure {
     dependsOn verifyClientState
+}
+
+tasks.named('test', Test).configure {
+    failOnNoDiscoveredTests = false
 }
 
 processResources {
