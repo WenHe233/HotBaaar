@@ -75,6 +75,11 @@ dependencies {
     // SRG runtime, ForgeGradle-compatible userdev), published as net.neoforged:forge.
     minecraft "net.neoforged:forge:${neo_version}"
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+}
+
+tasks.named('test', Test).configure {
+    useJUnitPlatform()
 }
 
 tasks.named('processResources', ProcessResources).configure {
