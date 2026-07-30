@@ -69,6 +69,10 @@ tasks.named('check').configure {
     dependsOn verifyClientState
 }
 
+tasks.named('test', Test).configure {
+    failOnNoDiscoveredTests = false
+}
+
 idea {
     module {
         downloadSources = true
