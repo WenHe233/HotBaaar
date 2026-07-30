@@ -1,16 +1,13 @@
 plugins {
-    id 'java-library'
-    id 'maven-publish'
+    id 'java'
     id 'idea'
-    id 'net.neoforged.moddev' version '2.0.143'
+    id 'eclipse'
+    id 'maven-publish'
+    id 'net.minecraftforge.gradle' version '[7.0.17,8)'
 }
 
 version = mod_version
 group = mod_group_id
-
-repositories {
-    mavenLocal()
-}
 
 base {
     archivesName = mod_id
@@ -18,32 +15,34 @@ base {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
-neoForge {
-    enable {
-        version = project.neo_version
-    }
-
+minecraft {
     runs {
-        client {
-            client()
+        configureEach {
+            workingDir = layout.projectDirectory.dir('run')
         }
-    }
 
-    mods {
-        "${mod_id}" {
-            sourceSet(sourceSets.main)
-        }
+        register('client')
     }
 }
 
-// Expand placeholders in the mod metadata template (NeoForge runs on Mojang mappings, mixins need no refmap).
+repositories {
+    minecraft.mavenizer(it)
+    maven fg.forgeMaven
+    maven fg.minecraftLibsMaven
+    mavenCentral()
+}
+
+dependencies {
+    implementation minecraft.dependency("net.minecraftforge:forge:${minecraft_version}-${forge_version}")
+}
+
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
     from "src/main/templates"
     var replaceProperties = [
             minecraft_version      : minecraft_version,
             minecraft_version_range: minecraft_version_range,
-            neo_version            : neo_version,
-            neo_version_range      : neo_version_range,
+            forge_version          : forge_version,
+            forge_version_range    : forge_version_range,
             loader_version_range   : loader_version_range,
             mod_id                 : mod_id,
             mod_name               : mod_name,
@@ -57,7 +56,6 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
     into "build/generated/sources/modMetadata"
 }
 sourceSets.main.resources.srcDir generateModMetadata
-neoForge.ideSyncTask generateModMetadata
 
 tasks.register('verifyClientState', JavaExec) {
     dependsOn testClasses
@@ -73,9 +71,21 @@ tasks.named('test', Test).configure {
     failOnNoDiscoveredTests = false
 }
 
-idea {
-    module {
-        downloadSources = true
-        downloadJavadoc = true
+tasks.named('jar', Jar).configure {
+    manifest {
+        attributes 'MixinConfigs': "${mod_id}.mixins.json"
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 25
+}
+
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            artifact jar
+        }
     }
 }
