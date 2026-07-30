@@ -30,6 +30,11 @@ dependencies {
     // Use Mojang's official mappings so the shared client/mixin code compiles unchanged across loaders.
     mappings loom.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:${loader_version}"
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+}
+
+tasks.named('test', Test).configure {
+    useJUnitPlatform()
 }
 
 processResources {
