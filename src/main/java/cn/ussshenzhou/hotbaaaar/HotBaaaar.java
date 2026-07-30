@@ -1,12 +1,13 @@
 package cn.ussshenzhou.hotbaaaar;
 
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.common.Mod;
 
 /**
- * Client-only "super long hotbar" mod for 1.19.2 Forge.
+ * Client-only "super long hotbar" mod for NeoForge.
  * <p>
- * All behaviour lives in client-side mixins ({@code GuiMixin}, {@code InventoryMixin},
- * {@code MinecraftMixin}) and {@code cn.ussshenzhou.hotbaaaar.client.HotbaaaarClient}.
+ * All behaviour lives in client-side mixins and
+ * {@code cn.ussshenzhou.hotbaaaar.client.HotbaaaarClient}.
  * The mod does nothing on a dedicated server and is safe to connect to vanilla servers.
  *
  * @author USS_Shenzhou
@@ -15,6 +16,6 @@ import net.minecraftforge.fml.common.Mod;
 public class HotBaaaar {
     public static final String MOD_ID = "hotbaaaar";
 
-    public HotBaaaar() {
+    public HotBaaaar(IEventBus modEventBus) {
     }
 }

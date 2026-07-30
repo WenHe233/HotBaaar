@@ -6,7 +6,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 
 /**
@@ -80,13 +80,11 @@ public final class HotbaaaarClient {
         );
     }
 
-    /** Kept as the render/scroll entry point used by all version variants. */
     public static void tickSanity() {
         Minecraft mc = Minecraft.getInstance();
-        reconcileScreenState(mc.screen != null);
+        reconcileScreenState(mc.gui.screen() != null);
     }
 
-    /** Restore the physical inventory to identity, returning false without side effects if unsafe. */
     public static boolean restoreCanonical() {
         int[] plan = ROW_MAPPING.planRestore();
         if (plan.length == 0) {
@@ -102,7 +100,7 @@ public final class HotbaaaarClient {
 
     public static void onScroll(double direction) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.screen != null || GUI_STATE.isCanonicalForScreen() || mc.player == null) {
+        if (mc.gui.screen() != null || GUI_STATE.isCanonicalForScreen() || mc.player == null) {
             return;
         }
         int dir = (int) Math.signum(direction);
@@ -110,12 +108,12 @@ public final class HotbaaaarClient {
             return;
         }
         tickSanity();
-        if (GUI_STATE.isCanonicalForScreen() || mc.screen != null) {
+        if (GUI_STATE.isCanonicalForScreen() || mc.gui.screen() != null) {
             return;
         }
 
         Inventory inventory = mc.player.getInventory();
-        int newSelected = inventory.selected - dir;
+        int newSelected = inventory.getSelectedSlot() - dir;
         if (newSelected < 0) {
             setSelected(inventory, flipRow(-1) ? ROW - 1 : 0);
         } else if (newSelected >= ROW) {
@@ -126,7 +124,7 @@ public final class HotbaaaarClient {
     }
 
     private static void setSelected(Inventory inventory, int slot) {
-        inventory.selected = slot;
+        inventory.setSelectedSlot(slot);
         Minecraft mc = Minecraft.getInstance();
         if (mc.getConnection() != null) {
             mc.getConnection().send(new ServerboundSetCarriedItemPacket(slot));
@@ -151,10 +149,6 @@ public final class HotbaaaarClient {
         return ROW_MAPPING.activeLogicalRow() == target;
     }
 
-    /**
-     * Resolve every required physical inventory cell before performing a single click. Exact
-     * inventory identity and a unique inventory index are required; no positional heuristics.
-     */
     private static ResolvedSwapPlan resolveSwapPlan(int[] physicalRows) {
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
@@ -191,11 +185,11 @@ public final class HotbaaaarClient {
         Minecraft mc = Minecraft.getInstance();
         for (int physical : plan.physicalRows) {
             for (int column = 0; column < ROW; column++) {
-                mc.gameMode.handleInventoryMouseClick(
+                mc.gameMode.handleContainerInput(
                         plan.menu.containerId,
                         plan.menuSlots[physical][column],
                         column,
-                        ClickType.SWAP,
+                        ContainerInput.SWAP,
                         plan.player
                 );
             }

@@ -2,11 +2,12 @@
   "required": true,
   "minVersion": "0.8",
   "package": "cn.ussshenzhou.hotbaaaar.mixin",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "JAVA_25",
   "client": [
     "GuiMixin",
-    "InventoryMixin",
-    "MinecraftMixin"
+    "MouseHandlerMixin",
+    "MinecraftMixin",
+    "ScreenManagerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
