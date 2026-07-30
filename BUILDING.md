@@ -10,7 +10,7 @@ workflows and this document, but no mod project.
 mc/<mc-version>-<loader>
 ```
 
-Examples: `mc/1.19.2-forge`, `mc/1.21.11-neoforge`, `mc/26.1.2-fabric`.
+Examples: `mc/1.19.2-forge`, `mc/1.21.11-neoforge`, `mc/26.2-fabric`.
 
 Each target branch is a complete project (its own `build.gradle`, sources, and `mods.toml` /
 `fabric.mod.json`) and carries:
@@ -19,7 +19,7 @@ Each target branch is a complete project (its own `build.gradle`, sources, and `
 - `.github/ci/java-version` — the JDK used to **run Gradle** on that branch (e.g. `17` for the
   Forge 1.19.2 branch, which uses ForgeGradle 6 + Gradle 8.1.1). The JDK used to **compile** the mod
   is provisioned automatically by Gradle's toolchain where configured. The 1.21.x targets use Java
-  21; the 26.1.2 targets use Java 25.
+  21; the 26.x targets use Java 25.
 
 ## CI (`.github/workflows/ci.yml`)
 

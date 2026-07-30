@@ -25,13 +25,13 @@
 
 本仓库用**分支矩阵**管理：每个 `mc/<版本>-<加载器>` 分支都是一个独立可构建的工程，`master` 只作为放置 CI / 文档的 hub。
 
-|  | 1.16.5 | 1.18.2 | 1.19.2 | 1.20.1 | 1.21.1 | 1.21.11 | 26.1.2 |
-|--|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
-| **Forge** | ✅ | ✅ | ✅ | ✅ | ✅ | — | — |
-| **NeoForge** | — | — | — | ✅ | ✅ | ✅ | ✅ |
-| **Fabric** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+|  | 1.16.5 | 1.18.2 | 1.19.2 | 1.20.1 | 1.21.1 | 1.21.11 | 26.1.2 | 26.2 |
+|--|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
+| **Forge** | ✅ | ✅ | ✅ | ✅ | ✅ | — | — | ✅ |
+| **NeoForge** | — | — | — | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Fabric** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-> ✅ 已构建；— 本仓库不提供该组合。当前共 16 个可构建目标。26.1.2 Fabric 使用非重映射 Loom、Java 25，且不依赖 Fabric API。
+> ✅ 已构建；— 本仓库不提供该组合。当前共 19 个可构建目标。26.x Fabric 使用非重映射 Loom、Java 25，且不依赖 Fabric API。
 
 下载见 [Releases](../../releases)；构建说明与如何新增目标见 [BUILDING.md](BUILDING.md)。
 
@@ -42,7 +42,7 @@
 本 fork：
 - **纯客户端**——用「翻行」技巧绕过服务端对「手持哪一格」的校验，**服务器不用装**；
 - 任意 GUI 打开时安全归位，并从活动菜单动态解析真实玩家槽位；
-- 扩展为 **Forge / NeoForge / Fabric × 1.16.5 / 1.18.2 / 1.19.2 / 1.20.1 / 1.21.1 / 1.21.11 / 26.1.2** 的 16 目标矩阵。
+- 扩展为 **Forge / NeoForge / Fabric × 1.16.5 / 1.18.2 / 1.19.2 / 1.20.1 / 1.21.1 / 1.21.11 / 26.1.2 / 26.2** 的 19 目标矩阵。
 
 正常退出前，暂停界面会触发归位；意外断线后客户端已无法再向服务器发送点击，因此无法保证最后一次归位。
 
@@ -75,13 +75,13 @@ changes SWAP semantics, the client sends no partial clicks, preserves its mappin
 
 Managed as a **branch matrix**: every `mc/<version>-<loader>` branch is a standalone buildable project, while `master` is just a hub holding the CI / docs.
 
-|  | 1.16.5 | 1.18.2 | 1.19.2 | 1.20.1 | 1.21.1 | 1.21.11 | 26.1.2 |
-|--|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
-| **Forge** | ✅ | ✅ | ✅ | ✅ | ✅ | — | — |
-| **NeoForge** | — | — | — | ✅ | ✅ | ✅ | ✅ |
-| **Fabric** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+|  | 1.16.5 | 1.18.2 | 1.19.2 | 1.20.1 | 1.21.1 | 1.21.11 | 26.1.2 | 26.2 |
+|--|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
+| **Forge** | ✅ | ✅ | ✅ | ✅ | ✅ | — | — | ✅ |
+| **NeoForge** | — | — | — | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Fabric** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-> ✅ built; — combination not provided by this repository. There are 16 buildable targets. The 26.1.2 Fabric target uses non-remapping Loom and Java 25, with no Fabric API dependency.
+> ✅ built; — combination not provided by this repository. There are 19 buildable targets. The 26.x Fabric targets use non-remapping Loom and Java 25, with no Fabric API dependency.
 
 Downloads: [Releases](../../releases). Building / adding targets: [BUILDING.md](BUILDING.md).
 
@@ -92,7 +92,7 @@ The original [USS-Shenzhou/HotBaaar](https://github.com/USS-Shenzhou/HotBaaar) i
 This fork:
 - is **client-only** — it uses the row-flip trick to work around the server's held-slot validation, so **no server install is needed**;
 - safely restores on any GUI and resolves real player slots dynamically from the active menu;
-- expands into a 16-target **Forge / NeoForge / Fabric × 1.16.5 / 1.18.2 / 1.19.2 / 1.20.1 / 1.21.1 / 1.21.11 / 26.1.2** matrix.
+- expands into a 19-target **Forge / NeoForge / Fabric × 1.16.5 / 1.18.2 / 1.19.2 / 1.20.1 / 1.21.1 / 1.21.11 / 26.1.2 / 26.2** matrix.
 
 A normal quit opens a pause screen and restores first. After an abrupt disconnect the client can no
 longer send inventory clicks, so a final restore cannot be guaranteed.
