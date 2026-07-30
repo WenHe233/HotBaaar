@@ -6,7 +6,7 @@
   "refmap": "hotbaaaar.refmap.json",
   "client": [
     "GuiMixin",
-    "InventoryMixin",
+    "MouseHandlerMixin",
     "MinecraftMixin"
   ],
   "injectors": {

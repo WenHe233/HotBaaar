@@ -7,6 +7,7 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.Inventory;
@@ -63,19 +64,19 @@ public abstract class GuiMixin {
 
         // backgrounds
         for (int i = 0; i < rows; i++) {
-            guiGraphics.blitSprite(Util.HOTBAR_SPRITE, x0 + i * oneHotbar, screenHeight - height, oneHotbar, height);
+            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, Util.HOTBAR_SPRITE, x0 + i * oneHotbar, screenHeight - height, oneHotbar, height);
         }
 
         // selection frame at the logical selected slot
-        int logicalSelected = Mth.clamp(HotbaaaarClient.getActiveLogicalRow(), 0, rows - 1) * 9 + inv.selected;
-        guiGraphics.blitSprite(Util.HOTBAR_SELECTION_SPRITE, x0 - 1 + logicalSelected * 20 + (logicalSelected / 9 * 2), screenHeight - height - 1, 24, 23);
+        int logicalSelected = Mth.clamp(HotbaaaarClient.getActiveLogicalRow(), 0, rows - 1) * 9 + inv.getSelectedSlot();
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, Util.HOTBAR_SELECTION_SPRITE, x0 - 1 + logicalSelected * 20 + (logicalSelected / 9 * 2), screenHeight - height - 1, 24, 23);
 
         // offhand frame
         if (!offhand.isEmpty()) {
             if (offhandArm == HumanoidArm.LEFT) {
-                guiGraphics.blitSprite(Util.HOTBAR_OFFHAND_LEFT_SPRITE, x0 - 29, screenHeight - 23, 29, 24);
+                guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, Util.HOTBAR_OFFHAND_LEFT_SPRITE, x0 - 29, screenHeight - 23, 29, 24);
             } else {
-                guiGraphics.blitSprite(Util.HOTBAR_OFFHAND_RIGHT_SPRITE, x1, screenHeight - 23, 29, 24);
+                guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, Util.HOTBAR_OFFHAND_RIGHT_SPRITE, x1, screenHeight - 23, 29, 24);
             }
         }
 
@@ -87,7 +88,7 @@ public abstract class GuiMixin {
             int physicalSlot = HotbaaaarClient.physicalRowOfLogical(logicalRow) * 9 + col;
             int x = x0 + i * 20 + 3 + (i / 9 * 2);
             int y = screenHeight - 16 - 3;
-            this.renderSlot(guiGraphics, x, y, deltaTracker, player, inv.items.get(physicalSlot), seed++);
+            this.renderSlot(guiGraphics, x, y, deltaTracker, player, inv.getItem(physicalSlot), seed++);
         }
 
         // offhand item
@@ -107,8 +108,8 @@ public abstract class GuiMixin {
                 int y = screenHeight - 20;
                 int x = (offhandArm == HumanoidArm.RIGHT) ? x0 - 22 : x1 + 6;
                 int progress = (int) (scale * 19.0F);
-                guiGraphics.blitSprite(Util.HOTBAR_ATTACK_INDICATOR_BACKGROUND_SPRITE, x, y, 18, 18);
-                guiGraphics.blitSprite(Util.HOTBAR_ATTACK_INDICATOR_PROGRESS_SPRITE, 18, 18, 0, 18 - progress, x, y + 18 - progress, 18, progress);
+                guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, Util.HOTBAR_ATTACK_INDICATOR_BACKGROUND_SPRITE, x, y, 18, 18);
+                guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, Util.HOTBAR_ATTACK_INDICATOR_PROGRESS_SPRITE, 18, 18, 0, 18 - progress, x, y + 18 - progress, 18, progress);
             }
         }
 
