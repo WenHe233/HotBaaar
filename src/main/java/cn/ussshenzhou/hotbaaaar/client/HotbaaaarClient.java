@@ -82,7 +82,7 @@ public final class HotbaaaarClient {
 
     public static void tickSanity() {
         Minecraft mc = Minecraft.getInstance();
-        reconcileScreenState(mc.screen != null);
+        reconcileScreenState(mc.gui.screen() != null);
     }
 
     public static boolean restoreCanonical() {
@@ -100,7 +100,7 @@ public final class HotbaaaarClient {
 
     public static void onScroll(double direction) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.screen != null || GUI_STATE.isCanonicalForScreen() || mc.player == null) {
+        if (mc.gui.screen() != null || GUI_STATE.isCanonicalForScreen() || mc.player == null) {
             return;
         }
         int dir = (int) Math.signum(direction);
@@ -108,7 +108,7 @@ public final class HotbaaaarClient {
             return;
         }
         tickSanity();
-        if (GUI_STATE.isCanonicalForScreen() || mc.screen != null) {
+        if (GUI_STATE.isCanonicalForScreen() || mc.gui.screen() != null) {
             return;
         }
 
