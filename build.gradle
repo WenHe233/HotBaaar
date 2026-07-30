@@ -44,6 +44,10 @@ tasks.named('check').configure {
     dependsOn verifyClientState
 }
 
+tasks.named('test', Test).configure {
+    failOnNoDiscoveredTests = false
+}
+
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
     var replaceProperties = [
             minecraft_version      : minecraft_version,
