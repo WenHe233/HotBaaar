@@ -7,7 +7,8 @@
   "client": [
     "GuiMixin",
     "InventoryMixin",
-    "MinecraftMixin"
+    "MinecraftMixin",
+    "SlotAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

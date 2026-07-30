@@ -1,5 +1,6 @@
 package cn.ussshenzhou.hotbaaaar.client;
 
+import cn.ussshenzhou.hotbaaaar.mixin.SlotAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
 import net.minecraft.util.Mth;
@@ -121,7 +122,7 @@ public final class HotbaaaarClient {
             return;
         }
         tickSanity();
-        Inventory inventory = mc.player.getInventory();
+        Inventory inventory = mc.player.inventory;
         int newSelected = inventory.selected - dir;
         if (newSelected < 0) {
             setSelected(inventory, flipRow(-1) ? ROW - 1 : 0);
@@ -169,7 +170,7 @@ public final class HotbaaaarClient {
             return null;
         }
         AbstractContainerMenu menu = player.containerMenu;
-        Inventory inventory = player.getInventory();
+        Inventory inventory = player.inventory;
         boolean[] required = new boolean[RowMapping.MAX_ROWS];
 
         for (int physical : physicalRows) {
@@ -184,7 +185,7 @@ public final class HotbaaaarClient {
             if (slot.container != inventory) {
                 continue;
             }
-                lookup.record(slot.getSlotIndex(), slot.index);
+                lookup.record(((SlotAccessor) slot).hotbaaaar$getContainerSlot(), slot.index);
         }
 
         int[][] menuSlots = lookup.finish();
