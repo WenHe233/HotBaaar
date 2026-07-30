@@ -72,11 +72,16 @@ repositories {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
 }
 
-tasks.named('test', Test).configure {
-    useJUnitPlatform()
+tasks.register('verifyClientState', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'cn.ussshenzhou.hotbaaaar.client.ClientStateTestSuite'
+}
+
+tasks.named('check').configure {
+    dependsOn verifyClientState
 }
 
 tasks.named('processResources', ProcessResources).configure {
