@@ -1,6 +1,8 @@
 plugins {
-    id 'net.fabricmc.fabric-loom-remap' version '1.14.10'
+    id 'java-library'
     id 'maven-publish'
+    id 'idea'
+    id 'net.neoforged.moddev' version '2.0.143'
 }
 
 version = mod_version
@@ -12,24 +14,24 @@ base {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
-loom {
-    // Generate the mixin refmap under the name our mixins.json references (keeps it identical to the
-    // Forge/NeoForge branches), instead of Loom's default "<archivesBaseName>-refmap.json".
-    mixin {
-        defaultRefmapName = "${mod_id}.refmap.json"
-    }
-}
-
 repositories {
-    mavenCentral()
-    maven { url = 'https://maven.fabricmc.net/' }
+    mavenLocal()
 }
 
-dependencies {
-    minecraft "com.mojang:minecraft:${minecraft_version}"
-    // Use Mojang's official mappings so the shared client/mixin code compiles unchanged across loaders.
-    mappings loom.officialMojangMappings()
-    modImplementation "net.fabricmc:fabric-loader:${loader_version}"
+neoForge {
+    version = project.neo_version
+
+    runs {
+        client {
+            client()
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
 }
 
 tasks.register('verifyClientState', JavaExec) {
@@ -42,13 +44,33 @@ tasks.named('check').configure {
     dependsOn verifyClientState
 }
 
-processResources {
-    inputs.property 'version', project.version
-    filesMatching('fabric.mod.json') {
-        expand 'version': project.version
-    }
+var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
+    var replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neo_version            : neo_version,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+            mod_authors            : mod_authors,
+            mod_description        : mod_description
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from "src/main/templates"
+    into "build/generated/sources/modMetadata"
 }
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
 }
