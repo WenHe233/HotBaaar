@@ -21,9 +21,29 @@ public final class HotbaaaarClient {
     private static final int ROW = 9;
     private static final RowMapping ROW_MAPPING = new RowMapping();
 
-    private static Object lastConnection;
-    private static boolean canonicalForScreen;
-    private static int savedActiveRow;
+    private static final GuiRestoreState GUI_STATE = new GuiRestoreState();
+    private static final GuiRestoreState.InventoryActions INVENTORY_ACTIONS =
+            new GuiRestoreState.InventoryActions() {
+                @Override
+                public int activeRow() {
+                    return ROW_MAPPING.activeLogicalRow();
+                }
+
+                @Override
+                public void resetIdentity() {
+                    ROW_MAPPING.resetIdentity();
+                }
+
+                @Override
+                public boolean restoreCanonical() {
+                    return HotbaaaarClient.restoreCanonical();
+                }
+
+                @Override
+                public boolean activateLogicalRow(int row) {
+                    return HotbaaaarClient.activateLogicalRow(row);
+                }
+            };
 
     private HotbaaaarClient() {
     }
@@ -51,42 +71,13 @@ public final class HotbaaaarClient {
      */
     public static void reconcileScreenState(boolean screenOpen) {
         Minecraft mc = Minecraft.getInstance();
-        Object connection = mc.getConnection();
-        if (connection != lastConnection) {
-            lastConnection = connection;
-            ROW_MAPPING.resetIdentity();
-            canonicalForScreen = false;
-            savedActiveRow = 0;
-        }
-
-        if (mc.player == null || mc.gameMode == null) {
-            return;
-        }
-
-        if (screenOpen) {
-            if (!canonicalForScreen) {
-                int rowToResume = ROW_MAPPING.activeLogicalRow();
-                if (restoreCanonical()) {
-                    savedActiveRow = rowToResume;
-                    canonicalForScreen = true;
-                }
-            }
-            return;
-        }
-
-        if (canonicalForScreen) {
-            if (savedActiveRow > 0 && savedActiveRow < getRows()) {
-                if (!activateLogicalRow(savedActiveRow)) {
-                    return;
-                }
-            }
-            canonicalForScreen = false;
-            savedActiveRow = 0;
-        }
-
-        if (ROW_MAPPING.activeLogicalRow() >= getRows()) {
-            restoreCanonical();
-        }
+        GUI_STATE.reconcile(
+                mc.getConnection(),
+                mc.player != null && mc.gameMode != null,
+                screenOpen,
+                getRows(),
+                INVENTORY_ACTIONS
+        );
     }
 
     public static void tickSanity() {
@@ -109,7 +100,7 @@ public final class HotbaaaarClient {
 
     public static void onScroll(double direction) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.screen != null || canonicalForScreen || mc.player == null) {
+        if (mc.screen != null || GUI_STATE.isCanonicalForScreen() || mc.player == null) {
             return;
         }
         int dir = (int) Math.signum(direction);
@@ -117,7 +108,7 @@ public final class HotbaaaarClient {
             return;
         }
         tickSanity();
-        if (canonicalForScreen || mc.screen != null) {
+        if (GUI_STATE.isCanonicalForScreen() || mc.screen != null) {
             return;
         }
 

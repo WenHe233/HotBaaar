@@ -8,5 +8,6 @@ public final class ClientStateTestSuite {
     public static void main(String[] args) {
         RowMappingTest.run();
         MenuSlotLookupTest.run();
+        GuiRestoreStateTest.run();
     }
 }
